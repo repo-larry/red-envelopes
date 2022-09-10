@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    database: 12
+    jedis:
+      pool:
+        enabled: true
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/red_envelope?useUnicode=true&characterEncoding=utf8&currentSchema=public&stringtype=unspecified
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      table-underline: true
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+    banner: false
