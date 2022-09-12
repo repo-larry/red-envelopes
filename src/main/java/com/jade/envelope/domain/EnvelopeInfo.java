@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-@TableName(value = "envelope_info", autoResultMap = true,schema = "public")
+@TableName(value = "envelope_info", autoResultMap = true, schema = "public")
 public class EnvelopeInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -20,7 +20,7 @@ public class EnvelopeInfo implements Serializable {
     // timestamp+5位随机数
     private Long envelopeId;
 
-    private Integer amount;
+    private Integer account;
 
     private Integer number;
 

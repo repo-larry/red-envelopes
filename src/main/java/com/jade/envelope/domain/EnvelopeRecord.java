@@ -12,7 +12,7 @@ public class EnvelopeRecord implements Serializable {
 
     private Integer id;
 
-    private Integer amount;
+    private Integer account;
 
     private String nickName;
 

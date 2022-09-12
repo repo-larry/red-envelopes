@@ -1,6 +1,7 @@
 package com.jade.envelope.domain;
 
 import lombok.Data;
+
 @Data
 public class EnvelopeGetDTO {
 

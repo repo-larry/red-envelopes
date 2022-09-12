@@ -34,10 +34,10 @@ public class EnvelopeInfoServiceImpl extends ServiceImpl<EnvelopeInfoMapper, Env
     @Override
     public boolean updateEnvelopeInfo(EnvelopeInfo envelopeInfo) {
         UpdateWrapper<EnvelopeInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set("remaining_amount", envelopeInfo.getRemainingAmount());
-        updateWrapper.set("remaining_number", envelopeInfo.getRemainingNumber());
-        updateWrapper.set("update_time", envelopeInfo.getUpdateTime());
-        updateWrapper.set("status", envelopeInfo.getStatus());
+//        updateWrapper.set("remaining_amount", envelopeInfo.getRemainingAmount());
+//        updateWrapper.set("remaining_number", envelopeInfo.getRemainingNumber());
+//        updateWrapper.set("update_time", envelopeInfo.getUpdateTime());
+//        updateWrapper.set("status", envelopeInfo.getStatus());
         baseMapper.update(envelopeInfo, updateWrapper);
         return Boolean.TRUE;
     }

@@ -7,7 +7,7 @@ public class TinyEnvelope {
 
     private Integer uid;
 
-    private Long amount;
+    private Long account;
 
     private Long envelopeId;
 

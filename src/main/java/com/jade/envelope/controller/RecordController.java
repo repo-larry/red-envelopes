@@ -28,6 +28,6 @@ public class RecordController {
     @GetMapping("update")
     @Async("asyncExecutor")
     public void saveRecord() {
-        iRecordService.startPool();
+        iRecordService.envelopeDataSync();
     }
 }
