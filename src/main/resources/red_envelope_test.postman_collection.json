@@ -1,0 +1,39 @@
+{
+	"info": {
+		"_postman_id": "a15a1444-af8f-4f50-b4c1-a498a9705a48",
+		"name": "red_envelope_test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23077486"
+	},
+	"item": [
+		{
+			"name": "并发抢红包",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "envelopeId",
+							"value": "1662963249580",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:8080/envelope/get",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"envelope",
+						"get"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
