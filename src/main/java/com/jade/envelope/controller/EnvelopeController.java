@@ -1,12 +1,16 @@
 package com.jade.envelope.controller;
 
 import cn.hutool.core.date.LocalDateTimeUtil;
-import com.jade.envelope.domain.*;
+import cn.hutool.json.JSONObject;
+import com.jade.envelope.domain.EnvelopeInfo;
+import com.jade.envelope.domain.EnvelopeSaveDTO;
+import com.jade.envelope.domain.R;
+import com.jade.envelope.domain.TinyEnvelope;
 import com.jade.envelope.service.IEnvelopeInfoService;
 import com.jade.envelope.util.EnvelopeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -16,17 +20,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("envelope")
 public class EnvelopeController {
 
-    @Autowired
-    @Qualifier("JacksonRedisTemplate")
-    private RedisTemplate<String, Object> redisTemplate;
+    @Resource(name = "JacksonRedisTemplate")
+    private RedisTemplate redisTemplate;
 
     @Autowired
     private IEnvelopeInfoService iEnvelopeInfoService;
@@ -45,7 +51,7 @@ public class EnvelopeController {
         envelopeInfo.setKeepTime(envelopeSave.getKeepTime());
         envelopeInfo.setStatus(1);
 
-        envelopeInfo.setAmount(envelopeSave.getAccount());
+        envelopeInfo.setAccount(envelopeSave.getAccount());
         envelopeInfo.setNumber(envelopeSave.getNumber());
         envelopeInfo.setRemainingAmount(envelopeSave.getAccount());
         envelopeInfo.setRemainingNumber(envelopeSave.getNumber());
@@ -57,7 +63,7 @@ public class EnvelopeController {
         List<TinyEnvelope> list = new ArrayList<>();
         for (long l : envelopeArray) {
             TinyEnvelope tinyEnvelope = new TinyEnvelope();
-            tinyEnvelope.setAmount(l);
+            tinyEnvelope.setAccount(l);
             tinyEnvelope.setEnvelopeId(envelopeId);
             tinyEnvelope.setUid(uid);
             list.add(tinyEnvelope);
@@ -66,21 +72,23 @@ public class EnvelopeController {
         list.toArray(envelopeArr);
         try {
             redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(TinyEnvelope.class));
-
-            redisTemplate.opsForList().rightPushAll("envelopeList_" + envelopeId, envelopeArr);
-            redisTemplate.expire("envelopeList_" + envelopeId, envelopeSave.getKeepTime(), TimeUnit.SECONDS);
+            ListOperations<Serializable, Object> operations = redisTemplate.opsForList();
+            final String key = "envelopeList_" + envelopeId;
+            operations.rightPushAll(key, envelopeArr);
+            redisTemplate.expire(key, envelopeSave.getKeepTime(), TimeUnit.SECONDS);
             iEnvelopeInfoService.insert(envelopeInfo);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("创建红包失败");
         }
         return R.ok(envelopeId, "创建红包成功");
     }
 
-    // 抢红包
+    // 抢红包 @RequestBody EnvelopeGetDTO envelopeGetDTO
     @PostMapping("get")
-    public R<?> getEnvelope(@RequestBody EnvelopeGetDTO envelopeGetDTO) {
-        long envelopeId = envelopeGetDTO.getEnvelopeId();
-        Integer uid = envelopeGetDTO.getUid();
+    public R<?> getEnvelope(Long envelopeId) {
+        Random random = new Random();
+        int uid = random.nextInt(10000);
         String envelopeListKey = "envelopeList_" + envelopeId;
         String envelopeConsumedListKey = "envelopeConsumedList_" + envelopeId;
         String envelopeConsumedMapKey = "envelopeConsumedMap_" + envelopeId;
@@ -96,7 +104,7 @@ public class EnvelopeController {
 
         TinyEnvelope te = luaExpress(envelopeListKey, envelopeConsumedListKey, envelopeConsumedMapKey, uid);
         if (te != null) {
-            long amount = te.getAmount();
+            long amount = te.getAccount();
             return R.ok("恭喜抢到红包" + amount + "元");
         }
         return R.fail("您已经抢过啦~");
@@ -111,7 +119,15 @@ public class EnvelopeController {
         keys.add(envelopeConsumedListKey);
         keys.add(envelopeConsumedMapKey);
         keys.add(Integer.toString(uid));
-        return redisTemplate.execute(lockScript, keys);
+
+        Object o = redisTemplate.execute(lockScript, keys);
+        JSONObject js = new JSONObject(o);
+        TinyEnvelope tinyEnvelope = new TinyEnvelope();
+        tinyEnvelope.setUid(Integer.parseInt(js.get("uid").toString()));
+        tinyEnvelope.setAccount(Long.valueOf(js.get("account").toString()));
+        tinyEnvelope.setEnvelopeId(Long.valueOf(js.get("envelopeId").toString()));
+
+        return tinyEnvelope;
     }
 
 }
